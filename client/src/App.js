@@ -5,7 +5,7 @@ import React, {useState, useEffect} from 'react';
 
 // Import the functions you need from the SDKs you need
 import {initializeApp } from "firebase/app";
-import {getDatabase, ref, child, push, update, get} from 'firebase/database';
+import {getDatabase, ref, child, push, update, get, onValue} from 'firebase/database';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -25,6 +25,10 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase
 const database = getDatabase(app);
 
+function getStreakCountFromTimestamps(timestampList){
+
+}
+
 function App() {
   const [userid, setUserId] = useState(null);
   const [useridInput, setUserIdInput] = useState('');
@@ -35,22 +39,60 @@ function App() {
   useEffect(() => {
     let unsubscribeCoinListener = null;
     let unsubscribeTimestampListener = null;
-    
+
     get(child(ref(database), `users/${userid}`)).then((snapshot) => {
       if (snapshot.exists()) {
-        // user exists, set up listeners for coins and timestamps
+        //set up listeners for coins and timestamps
+        unsubscribeCoinListener = onValue(child(ref(database), `/users/${userid}/total_coins`), (snapshot) => {
+          if(snapshot.exists()){
+            const data = snapshot.val();
+            setCoins(snapshot.val());
+          } 
+        });
+
+        unsubscribeTimestampListener = onValue(child(ref(database), `/users/${userid}/timestamps`), (snapshot) => {
+          if(snapshot.exists()){
+            let timestampList = [];
+            snapshot.forEach((timestamp) => {
+              timestampList.push(timestamp.key);
+            })
+            let streakCount = getStreakCountFromTimestamps(timestampList);
+            setStreak(streakCount);
+          }
+        });
       } else {
         // user does not exist
         let updates = {};
         updates[`/users/${userid}/total_coins`] = 0;
         update(ref(database), updates).then(() => {
           //set up listeners for coins and timestamps
+          unsubscribeCoinListener = onValue(child(ref(database), `/users/${userid}/total_coins`), (snapshot) => {
+            if(snapshot.exists()){
+              const data = snapshot.val();
+              setCoins(snapshot.val());
+            } 
+          });
 
+          unsubscribeTimestampListener = onValue(child(ref(database), `/users/${userid}/timestamps`), (snapshot) => {
+            if(snapshot.exists()){
+              let timestampList = [];
+              snapshot.forEach((timestamp) => {
+                timestampList.push(timestamp.key);
+              })
+              let streakCount = getStreakCountFromTimestamps(timestampList);
+              setStreak(streakCount);
+            }
+          });
         });
       }
     }).catch((error) => {
       console.log(error);
     }); 
+
+    return () => {
+      if(unsubscribeCoinListener) unsubscribeCoinListener();
+      if(unsubscribeTimestampListener) unsubscribeTimestampListener();
+    }
   }, [userid])
 
   useEffect(() => {
