@@ -29,8 +29,13 @@ function App() {
   const [userid, setUserId] = useState(null);
   const [useridInput, setUserIdInput] = useState('');
   const [checkIn, setCheckIn] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [coins, setCoins] = useState(0);
 
   useEffect(() => {
+    let unsubscribeCoinListener = null;
+    let unsubscribeTimestampListener = null;
+    
     get(child(ref(database), `users/${userid}`)).then((snapshot) => {
       if (snapshot.exists()) {
         // user exists, set up listeners for coins and timestamps
@@ -40,12 +45,26 @@ function App() {
         updates[`/users/${userid}/total_coins`] = 0;
         update(ref(database), updates).then(() => {
           //set up listeners for coins and timestamps
+
         });
       }
     }).catch((error) => {
       console.log(error);
     }); 
   }, [userid])
+
+  useEffect(() => {
+    if(checkIn === true) {
+      fetch('/checkin', {
+        method: 'POST'
+      }).then((res) => {
+          console.log(res);
+        }
+      )
+    } 
+    setCheckIn(false);
+  }, [checkIn])
+
 
   if(userid === null) {
     return (
@@ -65,14 +84,14 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <a>
-          Logout
-        </a>
-        <p >
-          Click daily for rewards!
-        </p>
+        <a> Logout </a>
+        <p >Click daily for rewards!</p>
         <br></br>
-        <button onClick={() => setUserId(useridInput)} disabled={useridInput.length <= 0}>Sign in</button>
+        <button onClick={() => setCheckIn(true)}>Check in!</button>
+        <br></br>
+        <p>Streak: {streak}</p>
+        <br></br>
+        <p>Coins: {coins}</p>
       </header>
     </div>
   );
