@@ -26,7 +26,17 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 function getStreakCountFromTimestamps(timestampList){
+  timestampList.sort().reverse();
 
+  let streakCount = 0;
+  for(let ii = 0; ii < timestampList.length - 1; ii++) {
+    const timeDiff = timestampList[ii] - timestampList[ii+1];
+    console.log(timeDiff);
+    if(timeDiff > 3 && timeDiff < 6) streakCount++;
+    else return streakCount;
+  }
+
+  return streakCount;
 }
 
 function App() {
@@ -54,7 +64,7 @@ function App() {
           if(snapshot.exists()){
             let timestampList = [];
             snapshot.forEach((timestamp) => {
-              timestampList.push(timestamp.key);
+              timestampList.push(parseInt(timestamp.key));
             })
             let streakCount = getStreakCountFromTimestamps(timestampList);
             setStreak(streakCount);
@@ -77,7 +87,7 @@ function App() {
             if(snapshot.exists()){
               let timestampList = [];
               snapshot.forEach((timestamp) => {
-                timestampList.push(timestamp.key);
+                timestampList.push(parseInt(timestamp.key));
               })
               let streakCount = getStreakCountFromTimestamps(timestampList);
               setStreak(streakCount);
