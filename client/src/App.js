@@ -65,9 +65,7 @@ const Timer = () => {
   }, [timeVal]);
 
   return (
-    <div>
-      <h3>{timeVal}</h3>
-    </div>
+    <span>{timeVal}</span>
   );
 };
 
@@ -170,13 +168,13 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h2>DappBack Streaks!</h2>
-        <h5>Click between {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} and {MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins.</h5>
+        <h6>Click between {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} and {MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins.</h6>
         <br></br>
         <button onClick={() => setClick(true)}>Click!</button>
+        {!click && <Timer />}
         <br></br>
         <span>🔥 Streak: {streak}</span>&nbsp;&nbsp;<span>💰 Coins: {coins}</span>
         <br></br>
-        {!click && <Timer />}
       </header>
     </div>
   );
