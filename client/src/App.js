@@ -1,11 +1,10 @@
-import logo from './logo.svg';
 import './App.css';
 
 import React, {useState, useEffect} from 'react';
 
 // Import the functions you need from the SDKs you need
 import {initializeApp } from "firebase/app";
-import {getDatabase, ref, child, push, update, get, onValue} from 'firebase/database';
+import {getDatabase, ref, child, update, get, onValue} from 'firebase/database';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -108,7 +107,9 @@ function App() {
   useEffect(() => {
     if(checkIn === true) {
       fetch('checkin', {
-        method: 'POST'
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({userid: "sunil"})
       }).then((res) => {
           console.log(res);
         }
