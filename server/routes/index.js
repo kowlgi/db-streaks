@@ -40,7 +40,10 @@ function getStreakCountFromTimestamps(timestampList){
 }
 
 router.post('/checkin', async function(req, res, next) {
-    if(req.body.userid === null || req.body.userid.length <= 0) res.send('empty user id');
+    if(req.body.userid === null || req.body.userid.length <= 0) {
+      res.send('empty user id');
+      return;
+    }
 
     try {
         let streakCount = 0;
@@ -59,11 +62,14 @@ router.post('/checkin', async function(req, res, next) {
 
             const timeDiff = currentTimeInEpochSeconds - timestampList[0]; // compare new timestamp with last saved timestamp
             
-            if(timeDiff < MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) res.send("done"); // this timestamp does not count towards streak
+            if(timeDiff < MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) {
+              res.send("done"); // this timestamp does not count towards streak
+              return;
+            }
         }
 
         let updates = {};
-        updates[`/users/sunil/timestamps/${currentTimeInEpochSeconds}`] = true;
+        updates[`/users/${req.body.userid}/timestamps/${currentTimeInEpochSeconds}`] = true;
         await database.update(database.ref(db), updates); // save new timestamp
         streakCount++;
         newCoins++; // new coin because user added to the streak
@@ -90,7 +96,7 @@ router.post('/checkin', async function(req, res, next) {
 
           console.log(totalCoins);
           let updates = {};
-          updates[`/users/sunil/total_coins`] = totalCoins;
+          updates[`/users/${req.body.userid}/total_coins`] = totalCoins;
           await database.update(database.ref(db), updates);
         }
     } catch(err) {
