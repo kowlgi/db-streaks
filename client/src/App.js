@@ -24,13 +24,18 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase
 const database = getDatabase(app);
 
-const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 10; // in seconds
-const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 20; // in seconds
+const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 5; // in seconds
+const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 10; // in seconds
 
 function getStreakCountFromTimestamps(timestampList){
   timestampList.sort().reverse();
 
   let streakCount = 0;
+  const now = new Date();
+  const currentTimeInEpochSeconds = Math.round(now.getTime()/1000);
+  const timeDiff = currentTimeInEpochSeconds - timestampList[0];
+  if(timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) streakCount = 1;
+
   for(let ii = 0; ii < timestampList.length - 1; ii++) {
     const timeDiff = timestampList[ii] - timestampList[ii+1];
     if(timeDiff > MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT && 
