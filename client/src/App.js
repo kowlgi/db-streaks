@@ -107,7 +107,7 @@ function App() {
 
   useEffect(() => {
     if(checkIn === true) {
-      fetch('/checkin', {
+      fetch('checkin', {
         method: 'POST'
       }).then((res) => {
           console.log(res);
