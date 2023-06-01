@@ -171,13 +171,13 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h2>Click every {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins!</h2>
-        <Timer />
         <br></br>
         <button onClick={() => setCheckIn(true)}>Check in!</button>
         <br></br>
         <h4>🔥 Streak: {streak}</h4>
         <br></br>
         <h4>💰 Coins: {coins}</h4>
+        {!checkIn && <Timer />}
       </header>
     </div>
   );
