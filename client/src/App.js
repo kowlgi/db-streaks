@@ -30,7 +30,6 @@ function getStreakCountFromTimestamps(timestampList){
   let streakCount = 0;
   for(let ii = 0; ii < timestampList.length - 1; ii++) {
     const timeDiff = timestampList[ii] - timestampList[ii+1];
-    console.log(timeDiff);
     if(timeDiff > 3 && timeDiff < 6) streakCount++;
     else return streakCount;
   }
