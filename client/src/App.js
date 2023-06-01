@@ -1,10 +1,17 @@
-import './App.css';
+import "./App.css";
 
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from "react";
 
 // Import the functions you need from the SDKs you need
-import {initializeApp } from "firebase/app";
-import {getDatabase, ref, child, update, get, onValue} from 'firebase/database';
+import { initializeApp } from "firebase/app";
+import {
+  getDatabase,
+  ref,
+  child,
+  update,
+  get,
+  onValue,
+} from "firebase/database";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -16,7 +23,7 @@ const firebaseConfig = {
   projectId: "test-streaks",
   storageBucket: "test-streaks.appspot.com",
   messagingSenderId: "1043738936496",
-  appId: "1:1043738936496:web:e6f385f46f5c1533c96775"
+  appId: "1:1043738936496:web:e6f385f46f5c1533c96775",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -27,19 +34,22 @@ const database = getDatabase(app);
 const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 5; // in seconds
 const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 10; // in seconds
 
-function getStreakCountFromTimestamps(timestampList){
+function getStreakCountFromTimestamps(timestampList) {
   timestampList.sort().reverse();
 
   let streakCount = 0;
   const now = new Date();
-  const currentTimeInEpochSeconds = Math.round(now.getTime()/1000);
+  const currentTimeInEpochSeconds = Math.round(now.getTime() / 1000);
   const timeDiff = currentTimeInEpochSeconds - timestampList[0];
-  if(timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) streakCount = 1;
+  if (timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) streakCount = 1;
 
-  for(let ii = 0; ii < timestampList.length - 1; ii++) {
-    const timeDiff = timestampList[ii] - timestampList[ii+1];
-    if(timeDiff > MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT && 
-      timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) streakCount++;
+  for (let ii = 0; ii < timestampList.length - 1; ii++) {
+    const timeDiff = timestampList[ii] - timestampList[ii + 1];
+    if (
+      timeDiff > MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT &&
+      timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT
+    )
+      streakCount++;
     else return streakCount;
   }
 
@@ -64,14 +74,12 @@ const Timer = () => {
     // when we update it
   }, [timeVal]);
 
-  return (
-    <span>{timeVal}</span>
-  );
+  return <span>{timeVal}</span>;
 };
 
 function App() {
   const [userid, setUserId] = useState(null);
-  const [useridInput, setUserIdInput] = useState('');
+  const [useridInput, setUserIdInput] = useState("");
   const [click, setClick] = useState(false);
   const [streak, setStreak] = useState(0);
   const [coins, setCoins] = useState(0);
@@ -80,100 +88,126 @@ function App() {
     let unsubscribeCoinListener = null;
     let unsubscribeTimestampListener = null;
 
-    get(child(ref(database), `users/${userid}`)).then((snapshot) => {
-      if (snapshot.exists()) {
-        //set up listeners for coins and timestamps
-        unsubscribeCoinListener = onValue(child(ref(database), `/users/${userid}/total_coins`), (snapshot) => {
-          if(snapshot.exists()){
-            const data = snapshot.val();
-            setCoins(snapshot.val());
-          } 
-        });
-
-        unsubscribeTimestampListener = onValue(child(ref(database), `/users/${userid}/timestamps`), (snapshot) => {
-          if(snapshot.exists()){
-            let timestampList = [];
-            snapshot.forEach((timestamp) => {
-              timestampList.push(parseInt(timestamp.key));
-            })
-            let streakCount = getStreakCountFromTimestamps(timestampList);
-            setStreak(streakCount);
-          }
-        });
-      } else {
-        // user does not exist
-        let updates = {};
-        updates[`/users/${userid}/total_coins`] = 0;
-        update(ref(database), updates).then(() => {
+    get(child(ref(database), `users/${userid}`))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
           //set up listeners for coins and timestamps
-          unsubscribeCoinListener = onValue(child(ref(database), `/users/${userid}/total_coins`), (snapshot) => {
-            if(snapshot.exists()){
-              const data = snapshot.val();
-              setCoins(snapshot.val());
-            } 
-          });
-
-          unsubscribeTimestampListener = onValue(child(ref(database), `/users/${userid}/timestamps`), (snapshot) => {
-            if(snapshot.exists()){
-              let timestampList = [];
-              snapshot.forEach((timestamp) => {
-                timestampList.push(parseInt(timestamp.key));
-              })
-              let streakCount = getStreakCountFromTimestamps(timestampList);
-              setStreak(streakCount);
+          unsubscribeCoinListener = onValue(
+            child(ref(database), `/users/${userid}/total_coins`),
+            (snapshot) => {
+              if (snapshot.exists()) {
+                const data = snapshot.val();
+                setCoins(snapshot.val());
+              }
             }
+          );
+
+          unsubscribeTimestampListener = onValue(
+            child(ref(database), `/users/${userid}/timestamps`),
+            (snapshot) => {
+              if (snapshot.exists()) {
+                let timestampList = [];
+                snapshot.forEach((timestamp) => {
+                  timestampList.push(parseInt(timestamp.key));
+                });
+                let streakCount = getStreakCountFromTimestamps(timestampList);
+                setStreak(streakCount);
+              }
+            }
+          );
+        } else {
+          // user does not exist
+          let updates = {};
+          updates[`/users/${userid}/total_coins`] = 0;
+          update(ref(database), updates).then(() => {
+            //set up listeners for coins and timestamps
+            unsubscribeCoinListener = onValue(
+              child(ref(database), `/users/${userid}/total_coins`),
+              (snapshot) => {
+                if (snapshot.exists()) {
+                  const data = snapshot.val();
+                  setCoins(snapshot.val());
+                }
+              }
+            );
+
+            unsubscribeTimestampListener = onValue(
+              child(ref(database), `/users/${userid}/timestamps`),
+              (snapshot) => {
+                if (snapshot.exists()) {
+                  let timestampList = [];
+                  snapshot.forEach((timestamp) => {
+                    timestampList.push(parseInt(timestamp.key));
+                  });
+                  let streakCount = getStreakCountFromTimestamps(timestampList);
+                  setStreak(streakCount);
+                }
+              }
+            );
           });
-        });
-      }
-    }).catch((error) => {
-      console.log(error);
-    }); 
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
     return () => {
-      if(unsubscribeCoinListener) unsubscribeCoinListener();
-      if(unsubscribeTimestampListener) unsubscribeTimestampListener();
-    }
-  }, [userid])
+      if (unsubscribeCoinListener) unsubscribeCoinListener();
+      if (unsubscribeTimestampListener) unsubscribeTimestampListener();
+    };
+  }, [userid]);
 
   useEffect(() => {
-    if(click === true) {
-      fetch('click', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({userid: `${userid}`})
+    if (click === true) {
+      fetch("click", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userid: `${userid}` }),
       }).then((res) => {
-          console.log(res);
-        }
-      )
-    } 
+        console.log(res);
+      });
+    }
 
     setClick(false);
-  }, [click])
+  }, [click]);
 
-  if(userid === null) {
+  if (userid === null) {
     return (
       <div className="App">
         <header className="App-header">
-        <h2>DappBack Streaks!</h2>
-        <h5>Sign in with your name</h5>
-        <input value={useridInput} onChange={(e) => setUserIdInput(e.target.value)} placeholder="Enter user id"></input>
-        <br></br>
-        <button onClick={() => setUserId(useridInput)} disabled={useridInput.length <= 0}>Sign in</button>
+          <h2>DappBack Streaks!</h2>
+          <h5>Sign in with your name</h5>
+          <input
+            value={useridInput}
+            onChange={(e) => setUserIdInput(e.target.value)}
+            placeholder="Enter user id"
+          ></input>
+          <br></br>
+          <button
+            onClick={() => setUserId(useridInput)}
+            disabled={useridInput.length <= 0}
+          >
+            Sign in
+          </button>
         </header>
       </div>
-    )
+    );
   }
 
   return (
     <div className="App">
       <header className="App-header">
         <h2>DappBack Streaks!</h2>
-        <h6>Click between {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} and {MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins.</h6>
+        <h6>
+          Click between {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} and{" "}
+          {MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins.
+        </h6>
         <br></br>
         <button onClick={() => setClick(true)}>Click!</button>
         {!click && <Timer />}
         <br></br>
-        <span>🔥 Streak: {streak}</span>&nbsp;&nbsp;<span>💰 Coins: {coins}</span>
+        <span>🔥 Streak: {streak}</span>&nbsp;&nbsp;
+        <span>💰 Coins: {coins}</span>
         <br></br>
       </header>
     </div>
