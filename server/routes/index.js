@@ -51,21 +51,23 @@ router.post('/checkin', async function(req, res, next) {
         const now = new Date();
         const currentTimeInEpochSeconds = Math.round(now.getTime()/1000);
         const timestampsSnapshot = await database.get(database.child(database.ref(db), `users/${req.body.userid}/timestamps`));
+        let timestampList = [];
 
         // Check if we should save new timestamp 
         if (timestampsSnapshot.exists()) {
-            let timestampList = [];
             timestampsSnapshot.forEach((timestamp) => {
-              timestampList.push(parseInt(timestamp.key));
+                timestampList.push(parseInt(timestamp.key));
             })
             timestampList.sort().reverse();
-
             const timeDiff = currentTimeInEpochSeconds - timestampList[0]; // compare new timestamp with last saved timestamp
             
             if(timeDiff < MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) {
               res.send("done"); // this timestamp does not count towards streak
               return;
             }
+
+            const currentStreakCount = getStreakCountFromTimestamps(timestampList);
+            streakCount += currentStreakCount;
         }
 
         let updates = {};
@@ -74,9 +76,8 @@ router.post('/checkin', async function(req, res, next) {
         streakCount++;
         newCoins++; // new coin because user added to the streak
 
+        console.log(streakCount)
         // Compute Bonus coins
-        const currentStreakCount = getStreakCountFromTimestamps(timestampList);
-        streakCount += currentStreakCount;
         const bonusSnapshot = await database.get(database.child(database.ref(db), `bonus`));
         if(bonusSnapshot.exists()) {
           console.log("bonus exists");
@@ -103,6 +104,7 @@ router.post('/checkin', async function(req, res, next) {
         }
     } catch(err) {
       // fall carefully into the cliff
+      console.log(err);
     }
 
     res.send("done");
