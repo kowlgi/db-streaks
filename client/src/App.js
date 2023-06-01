@@ -74,7 +74,7 @@ const Timer = () => {
 function App() {
   const [userid, setUserId] = useState(null);
   const [useridInput, setUserIdInput] = useState('');
-  const [checkIn, setCheckIn] = useState(false);
+  const [click, setClick] = useState(false);
   const [streak, setStreak] = useState(0);
   const [coins, setCoins] = useState(0);
 
@@ -138,27 +138,26 @@ function App() {
   }, [userid])
 
   useEffect(() => {
-    if(checkIn === true) {
-      fetch('checkin', {
+    if(click === true) {
+      fetch('click', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({userid: "sunil"})
+        body: JSON.stringify({userid: `${userid}`})
       }).then((res) => {
           console.log(res);
         }
       )
     } 
 
-    setCheckIn(false);
-  }, [checkIn])
+    setClick(false);
+  }, [click])
 
   if(userid === null) {
     return (
       <div className="App">
         <header className="App-header">
-        <p >
-          Sign into DappBack Streaks
-        </p>
+        <h2>DappBack Streaks!</h2>
+        <h5>Sign in with your name</h5>
         <input value={useridInput} onChange={(e) => setUserIdInput(e.target.value)} placeholder="Enter user id"></input>
         <br></br>
         <button onClick={() => setUserId(useridInput)} disabled={useridInput.length <= 0}>Sign in</button>
@@ -170,14 +169,14 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h2>Click every {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins!</h2>
+        <h2>DappBack Streaks!</h2>
+        <h5>Click between {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} and {MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins.</h5>
         <br></br>
-        <button onClick={() => setCheckIn(true)}>Check in!</button>
+        <button onClick={() => setClick(true)}>Click!</button>
         <br></br>
-        <h4>🔥 Streak: {streak}</h4>
+        <span>🔥 Streak: {streak}</span>&nbsp;&nbsp;<span>💰 Coins: {coins}</span>
         <br></br>
-        <h4>💰 Coins: {coins}</h4>
-        {!checkIn && <Timer />}
+        {!click && <Timer />}
       </header>
     </div>
   );

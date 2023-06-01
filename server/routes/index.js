@@ -39,7 +39,7 @@ function getStreakCountFromTimestamps(timestampList){
   return streakCount;
 }
 
-router.post('/checkin', async function(req, res, next) {
+router.post('/click', async function(req, res, next) {
     if(req.body.userid === null || req.body.userid.length <= 0) {
       res.send('empty user id');
       return;
@@ -76,7 +76,6 @@ router.post('/checkin', async function(req, res, next) {
         streakCount++;
         newCoins++; // new coin because user added to the streak
 
-        console.log(streakCount)
         // Compute Bonus coins
         const bonusSnapshot = await database.get(database.child(database.ref(db), `bonus`));
         if(bonusSnapshot.exists()) {
@@ -87,7 +86,6 @@ router.post('/checkin', async function(req, res, next) {
           })
         }
 
-        console.log(streakCount);
         // Update user's total coins
         const coinsSnapshot = await database.get(database.child(database.ref(db), `users/${req.body.userid}/total_coins`));
         if(newCoins > 0) {
@@ -95,7 +93,6 @@ router.post('/checkin', async function(req, res, next) {
           if(coinsSnapshot.exists()) totalCoins = parseInt(coinsSnapshot.val()) + newCoins;
           else totalCoins = newCoins;
 
-          console.log(totalCoins);
           let updates = {};
           updates[`/users/${req.body.userid}/total_coins`] = totalCoins;
           await database.update(database.ref(db), updates);
