@@ -80,12 +80,10 @@ router.post('/checkin', async function(req, res, next) {
         // Compute Bonus coins
         const bonusSnapshot = await database.get(database.child(database.ref(db), `bonus`));
         if(bonusSnapshot.exists()) {
-          console.log("bonus exists");
           bonusSnapshot.forEach((bonus) => {
-            console.log(parseInt(bonus.val()))
-/*             if(streakCount === parseInt(bonus.val().streak_length)) {
+            if(streakCount === parseInt(bonus.val().streak_length)) {
               newCoins += parseInt(bonus.val().bonus_coins);
-            } */
+            }
           })
         }
 
