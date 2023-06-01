@@ -21,7 +21,9 @@ const app = firebase.initializeApp(firebaseConfig);
 
 // Initialize Firebase
 const db = database.getDatabase(app);
-const ref = database.ref;
+
+const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 3;
+const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 6;
 
 function getStreakCountFromTimestamps(timestampList){
   timestampList.sort().reverse();
@@ -29,7 +31,8 @@ function getStreakCountFromTimestamps(timestampList){
   let streakCount = 0;
   for(let ii = 0; ii < timestampList.length - 1; ii++) {
     const timeDiff = timestampList[ii] - timestampList[ii+1];
-    if(timeDiff > 3 && timeDiff < 6) streakCount++;
+    if(timeDiff > MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT && 
+      timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) streakCount++;
     else return streakCount;
   }
 
@@ -39,39 +42,61 @@ function getStreakCountFromTimestamps(timestampList){
 router.post('/checkin', async function(req, res, next) {
     if(req.body.userid === null || req.body.userid.length <= 0) res.send('empty user id');
 
-    const now = new Date();
-    const timestampsSnapshot = await database.get(database.child(database.ref(db), `users/${req.body.userid}/timestamps`));
-    if (timestampsSnapshot.exists()) {
-        let timestampList = [];
-        timestampsSnapshot.forEach((timestamp) => {
-          timestampList.push(parseInt(timestamp.key));
-        })
-        timestampList.sort().reverse();
-        const currentTimeInEpochSeconds = Math.round(now.getTime()/1000);
-        const timeDiff = currentTimeInEpochSeconds - timestampList[0];
+    try {
         let streakCount = 0;
-        let addCoins = 0;
-        if(timeDiff > 3 && timeDiff < 6) {
-          // TODO: add timestamp to database
-          // TODO: add 1 coin to user
-          streakCount = 1;
-        }  
+        let newCoins = 0;
+        const now = new Date();
+        const currentTimeInEpochSeconds = Math.round(now.getTime()/1000);
+        const timestampsSnapshot = await database.get(database.child(database.ref(db), `users/${req.body.userid}/timestamps`));
 
+        // Check if we should save new timestamp 
+        if (timestampsSnapshot.exists()) {
+            let timestampList = [];
+            timestampsSnapshot.forEach((timestamp) => {
+              timestampList.push(parseInt(timestamp.key));
+            })
+            timestampList.sort().reverse();
+
+            const timeDiff = currentTimeInEpochSeconds - timestampList[0]; // compare new timestamp with last saved timestamp
+            
+            if(timeDiff < MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) res.send("done"); // this timestamp does not count towards streak
+        }
+
+        let updates = {};
+        updates[`/users/sunil/timestamps/${currentTimeInEpochSeconds}`] = true;
+        await database.update(database.ref(db), updates); // save new timestamp
+        streakCount++;
+        newCoins++; // new coin because user added to the streak
+
+        // Compute Bonus coins
         const currentStreakCount = getStreakCountFromTimestamps(timestampList);
         streakCount += currentStreakCount;
         const bonusSnapshot = await database.get(database.child(database.ref(db), `bonus`));
         if(bonusSnapshot.exists()) {
           bonusSnapshot.forEach((bonus) => {
-            if(streakCount === bonus.streak_length) {
-              addCoins = bonus.bonus_coins;
+            if(streakCount === parseInt(bonus.val().streak_length)) {
+              newCoins = parseInt(bonus.val().bonus_coins);
             }
           })
         }
 
-        if(addCoins > 0) {
-          
+        console.log(streakCount);
+        // Update user's total coins
+        const coinsSnapshot = await database.get(database.child(database.ref(db), `users/${req.body.userid}/total_coins`));
+        if(newCoins > 0) {
+          let totalCoins = 0;
+          if(coinsSnapshot.exists()) totalCoins = parseInt(coinsSnapshot.val()) + newCoins;
+          else totalCoins = newCoins;
+
+          console.log(totalCoins);
+          let updates = {};
+          updates[`/users/sunil/total_coins`] = totalCoins;
+          await database.update(database.ref(db), updates);
         }
+    } catch(err) {
+      // fall carefully into the cliff
     }
+
     res.send("done");
 });
 

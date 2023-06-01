@@ -24,13 +24,17 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase
 const database = getDatabase(app);
 
+const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 3; // in seconds
+const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 6; // in seconds
+
 function getStreakCountFromTimestamps(timestampList){
   timestampList.sort().reverse();
 
   let streakCount = 0;
   for(let ii = 0; ii < timestampList.length - 1; ii++) {
     const timeDiff = timestampList[ii] - timestampList[ii+1];
-    if(timeDiff > 3 && timeDiff < 6) streakCount++;
+    if(timeDiff > MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT && 
+      timeDiff < MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT) streakCount++;
     else return streakCount;
   }
 
@@ -136,7 +140,6 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <a> Logout </a>
         <p >Click daily for rewards!</p>
         <br></br>
         <button onClick={() => setCheckIn(true)}>Check in!</button>
