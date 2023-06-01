@@ -22,8 +22,8 @@ const app = firebase.initializeApp(firebaseConfig);
 // Initialize Firebase
 const db = database.getDatabase(app);
 
-const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 3;
-const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 6;
+const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 10; // in seconds
+const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 20; // in seconds
 
 function getStreakCountFromTimestamps(timestampList){
   timestampList.sort().reverse();
