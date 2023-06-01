@@ -22,8 +22,8 @@ const app = firebase.initializeApp(firebaseConfig);
 // Initialize Firebase
 const db = database.getDatabase(app);
 
-const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 10; // in seconds
-const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 20; // in seconds
+const MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 5; // in seconds
+const MAX_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT = 10; // in seconds
 
 function getStreakCountFromTimestamps(timestampList){
   timestampList.sort().reverse();
@@ -79,10 +79,12 @@ router.post('/checkin', async function(req, res, next) {
         streakCount += currentStreakCount;
         const bonusSnapshot = await database.get(database.child(database.ref(db), `bonus`));
         if(bonusSnapshot.exists()) {
+          console.log("bonus exists");
           bonusSnapshot.forEach((bonus) => {
-            if(streakCount === parseInt(bonus.val().streak_length)) {
-              newCoins = parseInt(bonus.val().bonus_coins);
-            }
+            console.log(parseInt(bonus.val()))
+/*             if(streakCount === parseInt(bonus.val().streak_length)) {
+              newCoins += parseInt(bonus.val().bonus_coins);
+            } */
           })
         }
 
