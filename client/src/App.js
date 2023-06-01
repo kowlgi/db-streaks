@@ -46,6 +46,31 @@ function getStreakCountFromTimestamps(timestampList){
   return streakCount;
 }
 
+// Adapted from: https://stackoverflow.com/questions/57137094/implementing-a-countdown-timer-in-react-with-hooks
+const Timer = () => {
+  // initialize timeLeft with the seconds prop
+  const [timeVal, setTimeVal] = useState(0);
+
+  useEffect(() => {
+    // save intervalId to clear the interval when the
+    // component re-renders
+    const intervalId = setInterval(() => {
+      setTimeVal(timeVal + 1);
+    }, 1000);
+
+    // clear interval on re-render to avoid memory leaks
+    return () => clearInterval(intervalId);
+    // add timeLeft as a dependency to re-rerun the effect
+    // when we update it
+  }, [timeVal]);
+
+  return (
+    <div>
+      <h3>{timeVal}</h3>
+    </div>
+  );
+};
+
 function App() {
   const [userid, setUserId] = useState(null);
   const [useridInput, setUserIdInput] = useState('');
@@ -123,9 +148,9 @@ function App() {
         }
       )
     } 
+
     setCheckIn(false);
   }, [checkIn])
-
 
   if(userid === null) {
     return (
@@ -145,13 +170,14 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <p >Click daily for rewards!</p>
+        <h2>Click every {MIN_TIME_BETWEEN_TIMESTAMPS_FOR_STREAK_COUNT} seconds for coins!</h2>
+        <Timer />
         <br></br>
         <button onClick={() => setCheckIn(true)}>Check in!</button>
         <br></br>
-        <p>Streak: {streak}</p>
+        <h4>🔥 Streak: {streak}</h4>
         <br></br>
-        <p>Coins: {coins}</p>
+        <h4>💰 Coins: {coins}</h4>
       </header>
     </div>
   );
